@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruaka Interactive Map - 100+ Towns</title>
+    <title>Ruaka Commercial Areas Map - 150+ Locations</title>
     <style>
         * {
             margin: 0;
@@ -14,7 +14,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
             overflow: hidden;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             height: 100vh;
         }
         
@@ -28,11 +28,11 @@
         }
         
         #map-wrapper {
-            width: 90%;
-            height: 90%;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 95%;
+            height: 95%;
+            background: #f8f9fa;
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.4);
             overflow: hidden;
             position: relative;
         }
@@ -41,7 +41,6 @@
             width: 100%;
             height: 100%;
             cursor: grab;
-            transition: transform 0.3s ease;
         }
         
         #map-svg:active {
@@ -53,35 +52,37 @@
             top: 20px;
             right: 20px;
             background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             z-index: 1000;
         }
         
         .zoom-btn {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             margin: 5px;
             border: none;
-            background: #4a5568;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 5px;
-            font-size: 20px;
+            border-radius: 8px;
+            font-size: 22px;
             cursor: pointer;
             transition: all 0.3s;
+            font-weight: bold;
         }
         
         .zoom-btn:hover {
-            background: #2d3748;
-            transform: scale(1.1);
+            transform: scale(1.15);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
         
         .zoom-level {
             text-align: center;
-            margin: 10px 0;
+            margin: 15px 0;
             font-weight: bold;
             color: #2d3748;
+            font-size: 16px;
         }
         
         .info-panel {
@@ -89,41 +90,97 @@
             top: 20px;
             left: 20px;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            max-width: 300px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            max-width: 350px;
             z-index: 1000;
         }
         
         .legend-item {
             display: flex;
             align-items: center;
-            margin: 10px 0;
+            margin: 12px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .legend-item:hover {
+            transform: translateX(5px);
         }
         
         .legend-dot {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            margin-right: 10px;
+            margin-right: 12px;
             border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        .tooltip {
+        .popup {
             position: absolute;
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 12px;
-            pointer-events: none;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            min-width: 200px;
             display: none;
             z-index: 2000;
+            border: 2px solid #667eea;
         }
         
-        /* Town visibility classes */
+        .popup h3 {
+            margin: 0 0 10px 0;
+            color: #2d3748;
+            font-size: 16px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        
+        .popup p {
+            margin: 5px 0;
+            color: #4a5568;
+            font-size: 13px;
+        }
+        
+        .popup .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .popup .tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .town-dot {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .town-dot:hover {
+            filter: brightness(1.3) drop-shadow(0 0 10px currentColor);
+            transform: scale(1.3);
+        }
+        
+        .selected {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Visibility classes */
         .town-major { display: block; }
         .town-medium { display: none; }
         .town-minor { display: none; }
@@ -131,20 +188,39 @@
         .zoom-medium .town-medium { display: block; }
         .zoom-high .town-medium { display: block; }
         .zoom-high .town-minor { display: block; }
+        
+        .search-box {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
     </style>
 </head>
 <body>
     <div id="map-container">
         <div id="map-wrapper">
-            <svg id="map-svg" viewBox="0 0 2000 2000" xmlns="http://www.w3.org/2000/svg">
+            <svg id="map-svg" viewBox="0 0 2400 2400" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <radialGradient id="bgGradient" cx="50%" cy="50%">
                         <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#f0fdf4;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#dcfce7;stop-opacity:1" />
+                        <stop offset="60%" style="stop-color:#f7fafc;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
                     </radialGradient>
                     <filter id="glow">
-                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
                         <feMerge>
                             <feMergeNode in="coloredBlur"/>
                             <feMergeNode in="SourceGraphic"/>
@@ -153,423 +229,65 @@
                 </defs>
                 
                 <!-- Background -->
-                <rect width="2000" height="2000" fill="url(#bgGradient)"/>
+                <rect width="2400" height="2400" fill="url(#bgGradient)"/>
                 
-                <!-- Grid for reference -->
+                <!-- Grid -->
                 <defs>
-                    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
-                        <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
+                    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#cbd5e1" stroke-width="0.5" opacity="0.3"/>
                     </pattern>
                 </defs>
-                <rect width="2000" height="2000" fill="url(#grid)" opacity="0.3"/>
+                <rect width="2400" height="2400" fill="url(#grid)"/>
                 
                 <!-- Distance Rings -->
                 <g id="rings">
-                    <circle cx="1000" cy="1000" r="133" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
-                    <circle cx="1000" cy="1000" r="267" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
-                    <circle cx="1000" cy="1000" r="400" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
-                    <circle cx="1000" cy="1000" r="533" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.7"/>
-                    <circle cx="1000" cy="1000" r="667" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
-                    <circle cx="1000" cy="1000" r="800" fill="none" stroke="#ef4444" stroke-width="3" opacity="0.7"/>
+                    <circle cx="1200" cy="1200" r="160" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="8,4" opacity="0.4"/>
+                    <circle cx="1200" cy="1200" r="320" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="8,4" opacity="0.4"/>
+                    <circle cx="1200" cy="1200" r="480" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.5"/>
+                    <circle cx="1200" cy="1200" r="640" fill="none" stroke="#dc2626" stroke-width="2.5" opacity="0.6"/>
+                    <circle cx="1200" cy="1200" r="800" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.5"/>
+                    <circle cx="1200" cy="1200" r="960" fill="none" stroke="#dc2626" stroke-width="3" opacity="0.7"/>
                     
-                    <!-- Distance labels -->
-                    <text x="1000" y="860" text-anchor="middle" fill="#6b7280" font-size="14">2km</text>
-                    <text x="1000" y="730" text-anchor="middle" fill="#6b7280" font-size="14">4km</text>
-                    <text x="1000" y="600" text-anchor="middle" fill="#6b7280" font-size="14">6km</text>
-                    <text x="1000" y="470" text-anchor="middle" fill="#dc2626" font-size="16" font-weight="bold">8km</text>
-                    <text x="1000" y="330" text-anchor="middle" fill="#6b7280" font-size="14">10km</text>
-                    <text x="1000" y="200" text-anchor="middle" fill="#dc2626" font-size="18" font-weight="bold">15km</text>
+                    <text x="1200" y="1035" text-anchor="middle" fill="#64748b" font-size="14" font-weight="600">2km</text>
+                    <text x="1200" y="875" text-anchor="middle" fill="#64748b" font-size="14" font-weight="600">4km</text>
+                    <text x="1200" y="715" text-anchor="middle" fill="#64748b" font-size="14" font-weight="600">6km</text>
+                    <text x="1200" y="555" text-anchor="middle" fill="#dc2626" font-size="16" font-weight="bold">8km</text>
+                    <text x="1200" y="395" text-anchor="middle" fill="#64748b" font-size="14" font-weight="600">10km</text>
+                    <text x="1200" y="235" text-anchor="middle" fill="#dc2626" font-size="18" font-weight="bold">15km BOUNDARY</text>
                 </g>
                 
-                <!-- Major Roads -->
+                <!-- Major Roads with Labels -->
                 <g id="roads">
-                    <line x1="1000" y1="1000" x2="1000" y2="200" stroke="#475569" stroke-width="3" opacity="0.5"/>
-                    <line x1="1000" y1="1000" x2="1600" y2="400" stroke="#475569" stroke-width="3" opacity="0.5"/>
-                    <line x1="1000" y1="1000" x2="1800" y2="1000" stroke="#475569" stroke-width="3" opacity="0.5"/>
-                    <line x1="1000" y1="1000" x2="1600" y2="1600" stroke="#475569" stroke-width="3" opacity="0.5"/>
-                    <line x1="1000" y1="1000" x2="1000" y2="1800" stroke="#475569" stroke-width="3" opacity="0.5"/>
-                    <line x1="1000" y1="1000" x2="400" y2="1600" stroke="#475569" stroke-width="3" opacity="0.5"/>
-                    <line x1="1000" y1="1000" x2="200" y2="1000" stroke="#475569" stroke-width="4" opacity="0.6"/>
-                    <line x1="1000" y1="1000" x2="400" y2="400" stroke="#475569" stroke-width="3" opacity="0.5"/>
-                    <text x="500" y="990" fill="#475569" font-size="12" font-weight="bold">← LIMURU ROAD →</text>
+                    <line x1="1200" y1="1200" x2="1200" y2="240" stroke="#334155" stroke-width="4" opacity="0.6"/>
+                    <text x="1220" y="600" fill="#334155" font-size="12" font-weight="bold">KIAMBU RD</text>
+                    
+                    <line x1="1200" y1="1200" x2="1920" y2="480" stroke="#334155" stroke-width="4" opacity="0.6"/>
+                    <text x="1600" y="750" fill="#334155" font-size="12" font-weight="bold">THIKA RD</text>
+                    
+                    <line x1="1200" y1="1200" x2="2160" y2="1200" stroke="#334155" stroke-width="4" opacity="0.6"/>
+                    <text x="1700" y="1190" fill="#334155" font-size="12" font-weight="bold">WAIYAKI WAY</text>
+                    
+                    <line x1="1200" y1="1200" x2="1200" y2="2160" stroke="#334155" stroke-width="4" opacity="0.6"/>
+                    <text x="1220" y="1700" fill="#334155" font-size="12" font-weight="bold">NGONG RD</text>
+                    
+                    <line x1="1200" y1="1200" x2="240" y2="1200" stroke="#334155" stroke-width="5" opacity="0.7"/>
+                    <text x="600" y="1190" fill="#334155" font-size="14" font-weight="bold">← LIMURU ROAD →</text>
+                    
+                    <line x1="1200" y1="1200" x2="480" y2="1920" stroke="#334155" stroke-width="4" opacity="0.6"/>
+                    <text x="750" y="1600" fill="#334155" font-size="12" font-weight="bold">KIKUYU RD</text>
+                    
+                    <line x1="1200" y1="1200" x2="480" y2="480" stroke="#334155" stroke-width="4" opacity="0.6"/>
+                    <text x="750" y="750" fill="#334155" font-size="12" font-weight="bold">NORTHERN BYPASS</text>
                 </g>
                 
-                <!-- Center - RUAKA -->
-                <circle cx="1000" cy="1000" r="20" fill="#10b981" stroke="white" stroke-width="4" filter="url(#glow)"/>
-                <text x="1000" y="1040" text-anchor="middle" fill="#047857" font-size="28" font-weight="900">RUAKA</text>
+                <!-- CENTER - RUAKA -->
+                <circle cx="1200" cy="1200" r="25" fill="#10b981" stroke="white" stroke-width="5" filter="url(#glow)"/>
+                <text x="1200" y="1245" text-anchor="middle" fill="#047857" font-size="32" font-weight="900">RUAKA</text>
                 
-                <!-- Towns Layer -->
-                <g id="towns">
-                    <!-- MAJOR TOWNS (Always visible) -->
-                    <g class="town-major">
-                        <!-- Close Range 0-5km -->
-                        <circle cx="1000" cy="920" r="8" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="1000" y="910" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Two Rivers Mall</text>
-                        <text x="1000" y="895" text-anchor="middle" fill="#6b7280" font-size="10">0.5km</text>
-                        
-                        <circle cx="1080" cy="950" r="8" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="1120" y="953" fill="#1f2937" font-size="14" font-weight="600">Runda</text>
-                        <text x="1120" y="968" fill="#6b7280" font-size="10">2.5km</text>
-                        
-                        <circle cx="1100" cy="1000" r="8" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="1140" y="1003" fill="#1f2937" font-size="14" font-weight="600">Rosslyn</text>
-                        <text x="1140" y="1018" fill="#6b7280" font-size="10">2.8km</text>
-                        
-                        <circle cx="1000" cy="1100" r="8" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="1000" y="1125" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Banana Hill</text>
-                        <text x="1000" y="1140" text-anchor="middle" fill="#6b7280" font-size="10">3km</text>
-                        
-                        <circle cx="920" cy="1050" r="8" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="880" y="1053" text-anchor="end" fill="#1f2937" font-size="14" font-weight="600">Ndenderu</text>
-                        <text x="880" y="1068" text-anchor="end" fill="#6b7280" font-size="10">3km</text>
-                        
-                        <circle cx="900" cy="1000" r="8" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="860" y="1003" text-anchor="end" fill="#1f2937" font-size="14" font-weight="600">Gachie</text>
-                        <text x="860" y="1018" text-anchor="end" fill="#6b7280" font-size="10">2.5km</text>
-                        
-                        <!-- Limuru Road Corridor -->
-                        <circle cx="800" cy="1000" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="800" y="980" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Zambezi</text>
-                        <text x="800" y="965" text-anchor="middle" fill="#6b7280" font-size="10">5.5km</text>
-                        
-                        <circle cx="700" cy="1000" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="700" y="980" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Karuri</text>
-                        <text x="700" y="965" text-anchor="middle" fill="#6b7280" font-size="10">5km</text>
-                        
-                        <circle cx="600" cy="1000" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="600" y="1025" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Wangige</text>
-                        <text x="600" y="1040" text-anchor="middle" fill="#6b7280" font-size="10">9km</text>
-                        
-                        <circle cx="500" cy="1000" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="500" y="980" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Tigoni</text>
-                        <text x="500" y="965" text-anchor="middle" fill="#6b7280" font-size="10">12km</text>
-                        
-                        <circle cx="400" cy="1000" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="400" y="1025" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Limuru</text>
-                        <text x="400" y="1040" text-anchor="middle" fill="#6b7280" font-size="10">14km</text>
-                        
-                        <circle cx="300" cy="900" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="300" y="880" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Bibirioni</text>
-                        <text x="300" y="865" text-anchor="middle" fill="#6b7280" font-size="10">14.5km</text>
-                        
-                        <!-- Northern Corridor -->
-                        <circle cx="1000" cy="600" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1000" y="580" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Kiambu</text>
-                        <text x="1000" y="565" text-anchor="middle" fill="#6b7280" font-size="10">9km</text>
-                        
-                        <circle cx="1200" cy="700" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="1240" y="703" fill="#1f2937" font-size="14" font-weight="600">Ruiru</text>
-                        <text x="1240" y="718" fill="#6b7280" font-size="10">13km</text>
-                        
-                        <circle cx="1100" cy="500" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="1140" y="503" fill="#1f2937" font-size="14" font-weight="600">Juja</text>
-                        <text x="1140" y="518" fill="#6b7280" font-size="10">15km</text>
-                        
-                        <circle cx="1300" cy="600" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="1340" y="603" fill="#1f2937" font-size="14" font-weight="600">Thika</text>
-                        <text x="1340" y="618" fill="#6b7280" font-size="10">15km</text>
-                        
-                        <!-- Engineer and Northwest -->
-                        <circle cx="350" cy="350" r="8" fill="#f59e0b" stroke="white" stroke-width="2"/>
-                        <text x="350" y="330" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="700">ENGINEER</text>
-                        <text x="350" y="315" text-anchor="middle" fill="#6b7280" font-size="10">15km</text>
-                        
-                        <circle cx="450" cy="450" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="450" y="430" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Githunguri</text>
-                        <text x="450" y="415" text-anchor="middle" fill="#6b7280" font-size="10">15km</text>
-                        
-                        <circle cx="550" cy="550" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="550" y="530" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Lari</text>
-                        <text x="550" y="515" text-anchor="middle" fill="#6b7280" font-size="10">14km</text>
-                        
-                        <!-- Eastern Corridor -->
-                        <circle cx="1200" cy="950" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1240" y="953" fill="#1f2937" font-size="14" font-weight="600">Gigiri</text>
-                        <text x="1240" y="968" fill="#6b7280" font-size="10">5km</text>
-                        
-                        <circle cx="1250" cy="1000" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1290" y="1003" fill="#1f2937" font-size="14" font-weight="600">Muthaiga</text>
-                        <text x="1290" y="1018" fill="#6b7280" font-size="10">6km</text>
-                        
-                        <circle cx="1200" cy="1100" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1240" y="1103" fill="#1f2937" font-size="14" font-weight="600">Westlands</text>
-                        <text x="1240" y="1118" fill="#6b7280" font-size="10">6km</text>
-                        
-                        <!-- Southern Corridor -->
-                        <circle cx="1000" cy="1400" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1000" y="1425" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Nairobi CBD</text>
-                        <text x="1000" y="1440" text-anchor="middle" fill="#6b7280" font-size="10">10km</text>
-                        
-                        <circle cx="900" cy="1300" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="860" y="1303" text-anchor="end" fill="#1f2937" font-size="14" font-weight="600">Kilimani</text>
-                        <text x="860" y="1318" text-anchor="end" fill="#6b7280" font-size="10">9km</text>
-                        
-                        <circle cx="1100" cy="1300" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1140" y="1303" fill="#1f2937" font-size="14" font-weight="600">Lavington</text>
-                        <text x="1140" y="1318" fill="#6b7280" font-size="10">8km</text>
-                        
-                        <!-- Southwest -->
-                        <circle cx="700" cy="1200" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="660" y="1203" text-anchor="end" fill="#1f2937" font-size="14" font-weight="600">Kikuyu</text>
-                        <text x="660" y="1218" text-anchor="end" fill="#6b7280" font-size="10">12km</text>
-                        
-                        <circle cx="600" cy="1300" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="560" y="1303" text-anchor="end" fill="#1f2937" font-size="14" font-weight="600">Kabete</text>
-                        <text x="560" y="1318" text-anchor="end" fill="#6b7280" font-size="10">11km</text>
-                        
-                        <circle cx="1200" cy="1400" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="1240" y="1403" fill="#1f2937" font-size="14" font-weight="600">Karen</text>
-                        <text x="1240" y="1418" fill="#6b7280" font-size="10">13km</text>
-                        
-                        <circle cx="1100" cy="1500" r="8" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="1100" y="1525" text-anchor="middle" fill="#1f2937" font-size="14" font-weight="600">Langata</text>
-                        <text x="1100" y="1540" text-anchor="middle" fill="#6b7280" font-size="10">14km</text>
-                    </g>
-                    
-                    <!-- MEDIUM TOWNS (Visible at zoom > 1.5x) -->
-                    <g class="town-medium">
-                        <!-- More Limuru Road towns -->
-                        <circle cx="850" cy="1000" r="6" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="850" y="1025" text-anchor="middle" fill="#1f2937" font-size="12">Ndumberi</text>
-                        <text x="850" y="1038" text-anchor="middle" fill="#6b7280" font-size="9">4km</text>
-                        
-                        <circle cx="750" cy="950" r="6" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="750" y="935" text-anchor="middle" fill="#1f2937" font-size="12">Limuru Rd</text>
-                        <text x="750" y="922" text-anchor="middle" fill="#6b7280" font-size="9">4km</text>
-                        
-                        <circle cx="650" cy="950" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="650" y="935" text-anchor="middle" fill="#1f2937" font-size="12">Redhill</text>
-                        <text x="650" y="922" text-anchor="middle" fill="#6b7280" font-size="9">7km</text>
-                        
-                        <circle cx="550" cy="950" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="550" y="935" text-anchor="middle" fill="#1f2937" font-size="12">Kinoo</text>
-                        <text x="550" y="922" text-anchor="middle" fill="#6b7280" font-size="9">9.5km</text>
-                        
-                        <circle cx="450" cy="950" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="450" y="935" text-anchor="middle" fill="#1f2937" font-size="12">Uthiru</text>
-                        <text x="450" y="922" text-anchor="middle" fill="#6b7280" font-size="9">11km</text>
-                        
-                        <circle cx="350" cy="1000" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="350" y="1025" text-anchor="middle" fill="#1f2937" font-size="12">Gitaru</text>
-                        <text x="350" y="1038" text-anchor="middle" fill="#6b7280" font-size="9">13km</text>
-                        
-                        <circle cx="250" cy="1000" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="250" y="1025" text-anchor="middle" fill="#1f2937" font-size="12">Rironi</text>
-                        <text x="250" y="1038" text-anchor="middle" fill="#6b7280" font-size="9">15km</text>
-                        
-                        <!-- More inner areas -->
-                        <circle cx="950" cy="950" r="6" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="920" y="935" text-anchor="end" fill="#1f2937" font-size="12">Muchatha</text>
-                        <text x="920" y="922" text-anchor="end" fill="#6b7280" font-size="9">2km</text>
-                        
-                        <circle cx="1050" cy="1050" r="6" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="1080" y="1065" fill="#1f2937" font-size="12">Nyari</text>
-                        <text x="1080" y="1078" fill="#6b7280" font-size="9">3km</text>
-                        
-                        <circle cx="1080" cy="1100" r="6" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="1110" y="1115" fill="#1f2937" font-size="12">Village Market</text>
-                        <text x="1110" y="1128" fill="#6b7280" font-size="9">1.5km</text>
-                        
-                        <circle cx="950" cy="1100" r="6" fill="#ef4444" stroke="white" stroke-width="2"/>
-                        <text x="920" y="1115" text-anchor="end" fill="#1f2937" font-size="12">Kihara</text>
-                        <text x="920" y="1128" text-anchor="end" fill="#6b7280" font-size="9">3km</text>
-                        
-                        <circle cx="850" cy="1100" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="820" y="1115" text-anchor="end" fill="#1f2937" font-size="12">Kangemi</text>
-                        <text x="820" y="1128" text-anchor="end" fill="#6b7280" font-size="9">5km</text>
-                        
-                        <circle cx="820" cy="1130" r="6" fill="#10b981" stroke="white" stroke-width="2"/>
-                        <text x="790" y="1145" text-anchor="end" fill="#1f2937" font-size="12">Kangemi Flyover</text>
-                        <text x="790" y="1158" text-anchor="end" fill="#6b7280" font-size="9">5.5km</text>
-                        
-                        <circle cx="1150" cy="1050" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1180" y="1065" fill="#1f2937" font-size="12">UN Complex</text>
-                        <text x="1180" y="1078" fill="#6b7280" font-size="9">5km</text>
-                        
-                        <circle cx="1150" cy="1150" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1180" y="1165" fill="#1f2937" font-size="12">Parklands</text>
-                        <text x="1180" y="1178" fill="#6b7280" font-size="9">7km</text>
-                        
-                        <circle cx="1100" cy="1200" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1130" y="1215" fill="#1f2937" font-size="12">ABC Place</text>
-                        <text x="1130" y="1228" fill="#6b7280" font-size="9">5km</text>
-                        
-                        <circle cx="1050" cy="1250" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1080" y="1265" fill="#1f2937" font-size="12">Kileleshwa</text>
-                        <text x="1080" y="1278" fill="#6b7280" font-size="9">8km</text>
-                        
-                        <circle cx="950" cy="1250" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="920" y="1265" text-anchor="end" fill="#1f2937" font-size="12">Loresho</text>
-                        <text x="920" y="1278" text-anchor="end" fill="#6b7280" font-size="9">6km</text>
-                        
-                        <circle cx="850" cy="1250" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="820" y="1265" text-anchor="end" fill="#1f2937" font-size="12">Spring Valley</text>
-                        <text x="820" y="1278" text-anchor="end" fill="#6b7280" font-size="9">6km</text>
-                        
-                        <!-- Northern areas -->
-                        <circle cx="1100" cy="800" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1130" y="815" fill="#1f2937" font-size="12">Githurai</text>
-                        <text x="1130" y="828" fill="#6b7280" font-size="9">8.5km</text>
-                        
-                        <circle cx="1200" cy="850" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="1230" y="865" fill="#1f2937" font-size="12">Kasarani</text>
-                        <text x="1230" y="878" fill="#6b7280" font-size="9">9km</text>
-                        
-                        <circle cx="1300" cy="900" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="1330" y="915" fill="#1f2937" font-size="12">Roysambu</text>
-                        <text x="1330" y="928" fill="#6b7280" font-size="9">11km</text>
-                        
-                        <circle cx="900" cy="700" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="870" y="715" text-anchor="end" fill="#1f2937" font-size="12">Thindigua</text>
-                        <text x="870" y="728" text-anchor="end" fill="#6b7280" font-size="9">7km</text>
-                        
-                        <circle cx="800" cy="600" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="770" y="615" text-anchor="end" fill="#1f2937" font-size="12">Karatu</text>
-                        <text x="770" y="628" text-anchor="end" fill="#6b7280" font-size="9">8km</text>
-                        
-                        <circle cx="1200" cy="500" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="1230" y="515" fill="#1f2937" font-size="12">Gatundu</text>
-                        <text x="1230" y="528" fill="#6b7280" font-size="9">14km</text>
-                        
-                        <!-- Southwest additions -->
-                        <circle cx="500" cy="1100" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="470" y="1115" text-anchor="end" fill="#1f2937" font-size="12">Thogoto</text>
-                        <text x="470" y="1128" text-anchor="end" fill="#6b7280" font-size="9">12km</text>
-                        
-                        <circle cx="400" cy="1200" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="370" y="1215" text-anchor="end" fill="#1f2937" font-size="12">Ndeiya</text>
-                        <text x="370" y="1228" text-anchor="end" fill="#6b7280" font-size="9">14km</text>
-                        
-                        <circle cx="800" cy="1300" r="6" fill="#3b82f6" stroke="white" stroke-width="2"/>
-                        <text x="770" y="1315" text-anchor="end" fill="#1f2937" font-size="12">Kawangware</text>
-                        <text x="770" y="1328" text-anchor="end" fill="#6b7280" font-size="9">7.5km</text>
-                        
-                        <circle cx="900" cy="1400" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="870" y="1415" text-anchor="end" fill="#1f2937" font-size="12">Dagoretti</text>
-                        <text x="870" y="1428" text-anchor="end" fill="#6b7280" font-size="9">12km</text>
-                        
-                        <circle cx="1000" cy="1500" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="1000" y="1525" text-anchor="middle" fill="#1f2937" font-size="12">Ngong Road</text>
-                        <text x="1000" y="1538" text-anchor="middle" fill="#6b7280" font-size="9">12km</text>
-                        
-                        <circle cx="900" cy="1550" r="6" fill="#8b5cf6" stroke="white" stroke-width="2"/>
-                        <text x="900" y="1575" text-anchor="middle" fill="#1f2937" font-size="12">Ngong</text>
-                        <text x="900" y="1588" text-anchor="middle" fill="#6b7280" font-size="9">15km</text>
-                    </g>
-                    
-                    <!-- MINOR TOWNS (Visible at zoom > 2.5x) -->
-                    <g class="town-minor">
-                        <!-- Additional Limuru Road details -->
-                        <circle cx="825" cy="975" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="825" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Rumingi</text>
-                        
-                        <circle cx="775" cy="975" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="775" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Gacharage</text>
-                        
-                        <circle cx="725" cy="975" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="725" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Gathanga</text>
-                        
-                        <circle cx="675" cy="975" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="675" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Kiambaa</text>
-                        
-                        <circle cx="625" cy="975" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="625" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Ndumbuini</text>
-                        
-                        <circle cx="575" cy="975" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="575" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Muthiga</text>
-                        
-                        <circle cx="525" cy="975" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="525" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Kinoo Estate</text>
-                        
-                        <circle cx="475" cy="975" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="475" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Muthure</text>
-                        
-                        <circle cx="425" cy="975" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="425" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Muguga</text>
-                        
-                        <circle cx="375" cy="975" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="375" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Gitaru Junction</text>
-                        
-                        <circle cx="325" cy="975" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="325" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Chunga Mali</text>
-                        
-                        <circle cx="275" cy="975" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="275" y="965" text-anchor="middle" fill="#4b5563" font-size="10">Gichini</text>
-                        
-                        <!-- More detailed areas -->
-                        <circle cx="975" cy="975" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="955" y="965" text-anchor="end" fill="#4b5563" font-size="10">Kitisuru</text>
-                        
-                        <circle cx="1025" cy="975" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="1045" y="965" fill="#4b5563" font-size="10">Runda Estate</text>
-                        
-                        <circle cx="1025" cy="1025" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="1045" y="1035" fill="#4b5563" font-size="10">Nyari West</text>
-                        
-                        <circle cx="975" cy="1025" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="955" y="1035" text-anchor="end" fill="#4b5563" font-size="10">Mimosa</text>
-                        
-                        <circle cx="1075" cy="1025" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="1095" y="1035" fill="#4b5563" font-size="10">Old Runda</text>
-                        
-                        <circle cx="1125" cy="975" r="4" fill="#ef4444" stroke="white" stroke-width="1"/>
-                        <text x="1145" y="985" fill="#4b5563" font-size="10">New Runda</text>
-                        
-                        <circle cx="1175" cy="1025" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1195" y="1035" fill="#4b5563" font-size="10">Gigiri Estate</text>
-                        
-                        <circle cx="1125" cy="1125" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1145" y="1135" fill="#4b5563" font-size="10">Sarit Centre</text>
-                        
-                        <circle cx="1075" cy="1175" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1095" y="1185" fill="#4b5563" font-size="10">Valley Arcade</text>
-                        
-                        <circle cx="1025" cy="1225" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1045" y="1235" fill="#4b5563" font-size="10">Yaya Centre</text>
-                        
-                        <circle cx="975" cy="1275" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="995" y="1285" fill="#4b5563" font-size="10">Hurlingham</text>
-                        
-                        <circle cx="925" cy="1325" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="945" y="1335" fill="#4b5563" font-size="10">Nairobi West</text>
-                        
-                        <circle cx="1025" cy="1325" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1045" y="1335" fill="#4b5563" font-size="10">South C</text>
-                        
-                        <circle cx="1125" cy="1325" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1145" y="1335" fill="#4b5563" font-size="10">South B</text>
-                        
-                        <circle cx="1225" cy="1025" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1245" y="1035" fill="#4b5563" font-size="10">Ridgeways</text>
-                        
-                        <circle cx="1275" cy="1075" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1295" y="1085" fill="#4b5563" font-size="10">Garden Estate</text>
-                        
-                        <circle cx="1325" cy="1125" r="4" fill="#3b82f6" stroke="white" stroke-width="1"/>
-                        <text x="1345" y="1135" fill="#4b5563" font-size="10">Zimmerman</text>
-                        
-                        <circle cx="1375" cy="1175" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="1395" y="1185" fill="#4b5563" font-size="10">Kahawa</text>
-                        
-                        <circle cx="1425" cy="1225" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="1445" y="1235" fill="#4b5563" font-size="10">Kahawa West</text>
-                        
-                        <circle cx="1475" cy="1275" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="1495" y="1285" fill="#4b5563" font-size="10">Mwiki</text>
-                        
-                        <circle cx="1325" cy="1325" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="1345" y="1335" fill="#4b5563" font-size="10">Eastleigh</text>
-                        
-                        <circle cx="1375" cy="1375" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="1395" y="1385" fill="#4b5563" font-size="10">Embakasi</text>
-                        
-                        <circle cx="1425" cy="1425" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="1445" y="1435" fill="#4b5563" font-size="10">Donholm</text>
-                        
-                        <circle cx="1475" cy="1475" r="4" fill="#8b5cf6" stroke="white" stroke-width="1"/>
-                        <text x="1495" y="1485" fill="#4b5563" font-size="10">Pipeline</text>
-                    </g>
-                </g>
+                <!-- Towns will be added dynamically via JavaScript -->
+                <g id="towns-major" class="town-major"></g>
+                <g id="towns-medium" class="town-medium"></g>
+                <g id="towns-minor" class="town-minor"></g>
             </svg>
         </div>
         
@@ -581,73 +299,347 @@
         </div>
         
         <div class="info-panel">
-            <h3 style="margin-top: 0; color: #1f2937;">Ruaka Area Map</h3>
-            <p style="color: #6b7280; font-size: 13px;">100+ Towns & Landmarks</p>
-            <div style="margin: 15px 0;">
+            <h3 style="margin-top: 0; color: #1a202c; font-size: 20px;">Ruaka Commercial Map</h3>
+            <p style="color: #4a5568; font-size: 14px; margin-bottom: 15px;">150+ Commercial Centers & Towns</p>
+            
+            <div style="margin: 20px 0;">
                 <div class="legend-item">
                     <div class="legend-dot" style="background: #10b981;"></div>
-                    <span>Ruaka (Center)</span>
+                    <span><b>Ruaka</b> - Main Hub</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-dot" style="background: #ef4444;"></div>
-                    <span>0-5km (Close)</span>
+                    <span><b>0-5km</b> - Major Garages</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-dot" style="background: #3b82f6;"></div>
-                    <span>5-10km (Medium)</span>
+                    <span><b>5-10km</b> - Stockists</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-dot" style="background: #8b5cf6;"></div>
-                    <span>10-15km (Far)</span>
+                    <span><b>10-15km</b> - Industrial</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-dot" style="background: #f59e0b;"></div>
-                    <span>Special Landmarks</span>
+                    <span><b>Special</b> - Landmarks</span>
                 </div>
             </div>
-            <hr style="border: 1px solid #e5e7eb; margin: 15px 0;">
-            <p style="color: #4b5563; font-size: 12px; line-height: 1.5;">
-                <strong>Zoom Levels:</strong><br>
-                • 100%: 35 major towns<br>
-                • 150%: 65 towns visible<br>
-                • 250%+: All 100+ towns<br><br>
-                <strong>Controls:</strong><br>
-                • Mouse wheel to zoom<br>
-                • Click & drag to pan<br>
-                • Hover for details
+            
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search for a town..." onkeyup="searchTown()">
+            </div>
+            
+            <hr style="border: 1px solid #e2e8f0; margin: 20px 0;">
+            
+            <p style="color: #4a5568; font-size: 13px; line-height: 1.6;">
+                <b>Click any location</b> to see details<br>
+                <b>Zoom in</b> to reveal all 150+ towns<br>
+                <b>Features:</b> Garages, Stockists, Markets
             </p>
         </div>
         
-        <div class="tooltip" id="tooltip"></div>
+        <div class="popup" id="popup">
+            <h3 id="popup-title">Town Name</h3>
+            <p><b>Distance:</b> <span id="popup-distance">0km</span></p>
+            <p><b>Zone:</b> <span id="popup-zone">Commercial</span></p>
+            <div class="features" id="popup-features">
+                <span class="tag">Garage</span>
+            </div>
+        </div>
     </div>
     
     <script>
-        let currentZoom = 1;
-        const svg = document.getElementById('map-svg');
-        const mapWrapper = document.getElementById('map-wrapper');
-        const tooltip = document.getElementById('tooltip');
-        let isPanning = false;
-        let startPoint = {x: 0, y: 0};
-        let viewBox = {x: 0, y: 0, w: 2000, h: 2000};
+        // Comprehensive town data - 150+ locations with commercial features
+        const townData = [
+            // MAJOR TOWNS - Always visible (Layer 1)
+            // Close Range with Garages
+            {name: "Two Rivers Mall", x: 1200, y: 1100, distance: "0.5km", zone: "Shopping", features: ["Mall", "Parking", "Services"], layer: 1, color: "#ef4444"},
+            {name: "Village Market", x: 1280, y: 1120, distance: "1.5km", zone: "Commercial", features: ["Garage", "Shopping", "Banks"], layer: 1, color: "#ef4444"},
+            {name: "Runda", x: 1300, y: 1150, distance: "2.5km", zone: "Residential", features: ["Petrol Station", "Shops"], layer: 1, color: "#ef4444"},
+            {name: "Rosslyn", x: 1320, y: 1200, distance: "2.8km", zone: "Commercial", features: ["Riviera Mall", "Garages"], layer: 1, color: "#ef4444"},
+            {name: "Gigiri", x: 1400, y: 1150, distance: "5km", zone: "Diplomatic", features: ["UN Complex", "Services"], layer: 1, color: "#ef4444"},
+            {name: "Banana Hill", x: 1200, y: 1320, distance: "3km", zone: "Commercial", features: ["Market", "Garage", "Hardware"], layer: 1, color: "#ef4444"},
+            {name: "Ndenderu", x: 1100, y: 1280, distance: "3km", zone: "Commercial", features: ["Jua Kali", "Spare Parts"], layer: 1, color: "#ef4444"},
+            {name: "Gachie", x: 1080, y: 1200, distance: "2.5km", zone: "Market", features: ["Market", "Garages", "Welding"], layer: 1, color: "#ef4444"},
+            
+            // Limuru Road Corridor - Major Stops
+            {name: "Zambezi", x: 960, y: 1200, distance: "5.5km", zone: "Commercial", features: ["Garages", "Petrol", "Market"], layer: 1, color: "#3b82f6"},
+            {name: "Karuri", x: 840, y: 1200, distance: "5km", zone: "Town", features: ["Market", "Banks", "Hardware"], layer: 1, color: "#3b82f6"},
+            {name: "Wangige", x: 720, y: 1200, distance: "9km", zone: "Town", features: ["Jua Kali", "Market", "Garages"], layer: 1, color: "#3b82f6"},
+            {name: "Tigoni", x: 600, y: 1200, distance: "12km", zone: "Industrial", features: ["Tea Factory", "Garages"], layer: 1, color: "#8b5cf6"},
+            {name: "Limuru", x: 480, y: 1200, distance: "14km", zone: "Town", features: ["Market", "Banks", "Garages"], layer: 1, color: "#8b5cf6"},
+            {name: "Bibirioni", x: 360, y: 1080, distance: "14.5km", zone: "Industrial", features: ["Hospital", "Market"], layer: 1, color: "#8b5cf6"},
+            {name: "Engineer", x: 420, y: 420, distance: "15km", zone: "Town", features: ["Market", "Garages", "Transit"], layer: 1, color: "#f59e0b"},
+            
+            // Northern Corridor
+            {name: "Kiambu", x: 1200, y: 720, distance: "9km", zone: "County HQ", features: ["Government", "Banks", "Garages"], layer: 1, color: "#3b82f6"},
+            {name: "Ruiru", x: 1440, y: 840, distance: "13km", zone: "Industrial", features: ["Industries", "Garages", "Market"], layer: 1, color: "#8b5cf6"},
+            {name: "Juja", x: 1320, y: 600, distance: "15km", zone: "Town", features: ["University", "Market", "Garages"], layer: 1, color: "#8b5cf6"},
+            {name: "Thika", x: 1560, y: 720, distance: "15km", zone: "Industrial", features: ["Industries", "Market", "Banks"], layer: 1, color: "#8b5cf6"},
+            
+            // Eastern Corridor
+            {name: "Muthaiga", x: 1380, y: 1260, distance: "6km", zone: "Residential", features: ["Mall", "Services"], layer: 1, color: "#3b82f6"},
+            {name: "Westlands", x: 1440, y: 1320, distance: "6km", zone: "CBD", features: ["Banks", "Offices", "Garages"], layer: 1, color: "#3b82f6"},
+            {name: "Parklands", x: 1380, y: 1380, distance: "7km", zone: "Commercial", features: ["Shops", "Garages", "Market"], layer: 1, color: "#3b82f6"},
+            {name: "Githurai 44", x: 1500, y: 1080, distance: "8.5km", zone: "Commercial", features: ["Market", "Jua Kali", "Transport"], layer: 1, color: "#3b82f6"},
+            {name: "Githurai 45", x: 1540, y: 1100, distance: "9km", zone: "Commercial", features: ["Market", "Garages", "Banks"], layer: 1, color: "#3b82f6"},
+            {name: "Kasarani", x: 1560, y: 1200, distance: "9km", zone: "Commercial", features: ["Stadium", "Market", "Garages"], layer: 1, color: "#3b82f6"},
+            
+            // Southern Corridor
+            {name: "Nairobi CBD", x: 1200, y: 1680, distance: "10km", zone: "City Center", features: ["Everything", "Banks", "Offices"], layer: 1, color: "#3b82f6"},
+            {name: "Kilimani", x: 1080, y: 1560, distance: "9km", zone: "Commercial", features: ["Offices", "Banks", "Services"], layer: 1, color: "#3b82f6"},
+            {name: "Lavington", x: 1320, y: 1560, distance: "8km", zone: "Commercial", features: ["Mall", "Services", "Banks"], layer: 1, color: "#3b82f6"},
+            {name: "Karen", x: 1440, y: 1680, distance: "13km", zone: "Suburban", features: ["Shopping", "Services"], layer: 1, color: "#8b5cf6"},
+            {name: "Langata", x: 1320, y: 1800, distance: "14km", zone: "Residential", features: ["Market", "Services"], layer: 1, color: "#8b5cf6"},
+            {name: "Industrial Area", x: 1380, y: 1740, distance: "12km", zone: "Industrial", features: ["Industries", "Garages", "Spare Parts"], layer: 1, color: "#8b5cf6"},
+            
+            // Southwest
+            {name: "Kikuyu", x: 840, y: 1440, distance: "12km", zone: "Town", features: ["Market", "Banks", "Garages"], layer: 1, color: "#8b5cf6"},
+            {name: "Kabete", x: 720, y: 1560, distance: "11km", zone: "Commercial", features: ["Market", "Garages"], layer: 1, color: "#8b5cf6"},
+            {name: "Uthiru", x: 660, y: 1380, distance: "9km", zone: "Commercial", features: ["Market", "Jua Kali"], layer: 1, color: "#3b82f6"},
+            {name: "Kinoo", x: 600, y: 1320, distance: "9.5km", zone: "Commercial", features: ["Market", "Garages"], layer: 1, color: "#3b82f6"},
+            
+            // MEDIUM IMPORTANCE TOWNS (Layer 2) - Visible at 150% zoom
+            // More Limuru Road
+            {name: "Ndumberi", x: 1020, y: 1200, distance: "4km", zone: "Market", features: ["Shops", "Garage"], layer: 2, color: "#ef4444"},
+            {name: "Limuru Road Mall", x: 900, y: 1150, distance: "4km", zone: "Shopping", features: ["Shops", "Services"], layer: 2, color: "#ef4444"},
+            {name: "Redhill", x: 780, y: 1150, distance: "7km", zone: "Commercial", features: ["Petrol", "Shops"], layer: 2, color: "#3b82f6"},
+            {name: "Kinoo 87", x: 660, y: 1260, distance: "8km", zone: "Junction", features: ["Transport", "Market"], layer: 2, color: "#3b82f6"},
+            {name: "Gitaru", x: 420, y: 1260, distance: "13km", zone: "Town", features: ["Market", "Garages"], layer: 2, color: "#8b5cf6"},
+            {name: "Gitaru Marigu-ini", x: 400, y: 1280, distance: "13.5km", zone: "Market", features: ["Jua Kali", "Market"], layer: 2, color: "#8b5cf6"},
+            {name: "Rironi", x: 300, y: 1200, distance: "15km", zone: "Town", features: ["Weighbridge", "Garages"], layer: 2, color: "#8b5cf6"},
+            {name: "Thigio", x: 280, y: 1180, distance: "15km", zone: "Market", features: ["Market"], layer: 2, color: "#8b5cf6"},
+            
+            // Inner Ring
+            {name: "Muchatha", x: 1140, y: 1140, distance: "2km", zone: "Residential", features: ["Shops"], layer: 2, color: "#ef4444"},
+            {name: "Nyari Estate", x: 1260, y: 1240, distance: "3km", zone: "Residential", features: ["Shopping"], layer: 2, color: "#ef4444"},
+            {name: "Runda Mumwe", x: 1340, y: 1180, distance: "3.5km", zone: "Residential", features: ["Shops"], layer: 2, color: "#ef4444"},
+            {name: "Kitisuru", x: 1160, y: 1260, distance: "2.5km", zone: "Residential", features: ["Shops"], layer: 2, color: "#ef4444"},
+            {name: "Kihara", x: 1120, y: 1320, distance: "3km", zone: "Market", features: ["Market"], layer: 2, color: "#ef4444"},
+            {name: "Gacharage", x: 1240, y: 1100, distance: "2.2km", zone: "Market", features: ["Shops"], layer: 2, color: "#ef4444"},
+            {name: "Rumingi", x: 1160, y: 1080, distance: "2.5km", zone: "Market", features: ["Shops"], layer: 2, color: "#ef4444"},
+            
+            // Kangemi Area
+            {name: "Kangemi", x: 1020, y: 1320, distance: "5km", zone: "Commercial", features: ["Market", "Jua Kali", "Garages"], layer: 2, color: "#3b82f6"},
+            {name: "Kangemi Flyover", x: 1000, y: 1340, distance: "5.5km", zone: "Junction", features: ["Transport"], layer: 2, color: "#3b82f6"},
+            {name: "Mountain View", x: 980, y: 1360, distance: "6km", zone: "Commercial", features: ["Market", "Garages"], layer: 2, color: "#3b82f6"},
+            {name: "Sodom", x: 960, y: 1380, distance: "6.5km", zone: "Market", features: ["Jua Kali", "Market"], layer: 2, color: "#3b82f6"},
+            
+            // UN/Gigiri Area
+            {name: "UN Complex", x: 1420, y: 1180, distance: "5km", zone: "Diplomatic", features: ["Offices"], layer: 2, color: "#3b82f6"},
+            {name: "Gigiri Estate", x: 1440, y: 1160, distance: "5.5km", zone: "Residential", features: ["Services"], layer: 2, color: "#3b82f6"},
+            {name: "Ridgeways", x: 1460, y: 1240, distance: "7km", zone: "Commercial", features: ["Mall", "Banks"], layer: 2, color: "#3b82f6"},
+            {name: "Garden Estate", x: 1480, y: 1280, distance: "8km", zone: "Residential", features: ["Shops"], layer: 2, color: "#3b82f6"},
+            
+            // Spring Valley/Loresho
+            {name: "Spring Valley", x: 1260, y: 1320, distance: "4km", zone: "Commercial", features: ["Shopping", "Services"], layer: 2, color: "#ef4444"},
+            {name: "Loresho", x: 1220, y: 1380, distance: "6km", zone: "Residential", features: ["Shopping"], layer: 2, color: "#3b82f6"},
+            {name: "Lower Kabete", x: 1140, y: 1420, distance: "7km", zone: "Commercial", features: ["Market", "Garages"], layer: 2, color: "#3b82f6"},
+            
+            // ABC/Kileleshwa
+            {name: "ABC Place", x: 1320, y: 1440, distance: "8km", zone: "Commercial", features: ["Mall", "Banks", "Services"], layer: 2, color: "#3b82f6"},
+            {name: "Kileleshwa", x: 1280, y: 1480, distance: "8km", zone: "Residential", features: ["Market", "Services"], layer: 2, color: "#3b82f6"},
+            {name: "Valley Arcade", x: 1240, y: 1500, distance: "8.5km", zone: "Commercial", features: ["Shopping", "Banks"], layer: 2, color: "#3b82f6"},
+            {name: "Yaya Centre", x: 1200, y: 1520, distance: "9km", zone: "Shopping", features: ["Mall", "Banks"], layer: 2, color: "#3b82f6"},
+            
+            // Kahawa/Zimmerman
+            {name: "Zimmerman", x: 1520, y: 1320, distance: "9km", zone: "Residential", features: ["Market", "Services"], layer: 2, color: "#3b82f6"},
+            {name: "Kahawa West", x: 1560, y: 1360, distance: "10km", zone: "Commercial", features: ["Market", "Garages"], layer: 2, color: "#3b82f6"},
+            {name: "Kahawa Sukari", x: 1580, y: 1380, distance: "11km", zone: "Residential", features: ["Shops"], layer: 2, color: "#8b5cf6"},
+            {name: "Kahawa Wendani", x: 1600, y: 1400, distance: "12km", zone: "Commercial", features: ["Market"], layer: 2, color: "#8b5cf6"},
+            
+            // Roysambu/Thome
+            {name: "Roysambu", x: 1540, y: 1260, distance: "11km", zone: "Commercial", features: ["Market", "Garages"], layer: 2, color: "#8b5cf6"},
+            {name: "Thome", x: 1520, y: 1240, distance: "10km", zone: "Market", features: ["Market", "Transport"], layer: 2, color: "#3b82f6"},
+            {name: "Garden City Mall", x: 1500, y: 1220, distance: "9km", zone: "Shopping", features: ["Mall", "Services"], layer: 2, color: "#3b82f6"},
+            {name: "TRM Mall", x: 1480, y: 1200, distance: "8km", zone: "Shopping", features: ["Mall", "Services"], layer: 2, color: "#3b82f6"},
+            
+            // Northern Areas
+            {name: "Thindigua", x: 1320, y: 960, distance: "7km", zone: "Commercial", features: ["Market"], layer: 2, color: "#3b82f6"},
+            {name: "Kiambu Road Mall", x: 1280, y: 920, distance: "8km", zone: "Shopping", features: ["Mall"], layer: 2, color: "#3b82f6"},
+            {name: "Runda Paradise", x: 1360, y: 1080, distance: "4km", zone: "Residential", features: ["Services"], layer: 2, color: "#ef4444"},
+            {name: "Fourways Junction", x: 1200, y: 900, distance: "7km", zone: "Junction", features: ["Petrol", "Shops"], layer: 2, color: "#3b82f6"},
+            
+            // Githunguri Corridor
+            {name: "Githunguri", x: 540, y: 540, distance: "15km", zone: "Town", features: ["Dairy", "Market", "Banks"], layer: 2, color: "#8b5cf6"},
+            {name: "Lari", x: 660, y: 660, distance: "14km", zone: "Town", features: ["Market"], layer: 2, color: "#8b5cf6"},
+            {name: "Gatundu", x: 1440, y: 600, distance: "14km", zone: "Town", features: ["Market", "Banks"], layer: 2, color: "#8b5cf6"},
+            {name: "Kigumo", x: 1080, y: 600, distance: "10km", zone: "Market", features: ["Market"], layer: 2, color: "#3b82f6"},
+            {name: "Ngorongo", x: 960, y: 720, distance: "9km", zone: "Market", features: ["Market"], layer: 2, color: "#3b82f6"},
+            
+            // Thogoto/Kikuyu
+            {name: "Thogoto", x: 600, y: 1440, distance: "12km", zone: "Market", features: ["Market", "Garages"], layer: 2, color: "#8b5cf6"},
+            {name: "Ondiri", x: 720, y: 1380, distance: "10km", zone: "Market", features: ["Market"], layer: 2, color: "#3b82f6"},
+            {name: "Dagoretti Market", x: 960, y: 1440, distance: "9km", zone: "Market", features: ["Market", "Jua Kali"], layer: 2, color: "#3b82f6"},
+            {name: "Waithaka", x: 1020, y: 1480, distance: "9km", zone: "Commercial", features: ["Market", "Garages"], layer: 2, color: "#3b82f6"},
+            
+            // Southern Extensions
+            {name: "Kawangware", x: 1080, y: 1500, distance: "8km", zone: "Commercial", features: ["Market", "Jua Kali", "Garages"], layer: 2, color: "#3b82f6"},
+            {name: "Riruta", x: 1020, y: 1560, distance: "10km", zone: "Commercial", features: ["Market"], layer: 2, color: "#3b82f6"},
+            {name: "Satellite", x: 960, y: 1620, distance: "11km", zone: "Commercial", features: ["Market", "Garages"], layer: 2, color: "#8b5cf6"},
+            {name: "87 Junction", x: 900, y: 1500, distance: "10km", zone: "Junction", features: ["Transport"], layer: 2, color: "#3b82f6"},
+            
+            // MINOR TOWNS (Layer 3) - Visible at 250% zoom
+            // Detailed Limuru Road settlements
+            {name: "Blue Valley", x: 980, y: 1180, distance: "3.5km", zone: "Residential", features: ["Shops"], layer: 3, color: "#ef4444"},
+            {name: "Rungiri", x: 940, y: 1160, distance: "4km", zone: "Market", features: ["Shops"], layer: 3, color: "#ef4444"},
+            {name: "Kanyariri", x: 880, y: 1180, distance: "5km", zone: "Market", features: ["Market"], layer: 3, color: "#3b82f6"},
+            {name: "Muguga Green", x: 820, y: 1220, distance: "6km", zone: "Market", features: ["Market"], layer: 3, color: "#3b82f6"},
+            {name: "Muguga", x: 760, y: 1240, distance: "7km", zone: "Market", features: ["Market"], layer: 3, color: "#3b82f6"},
+            {name: "Gikambura", x: 700, y: 1260, distance: "8km", zone: "Market", features: ["Market"], layer: 3, color: "#3b82f6"},
+            {name: "Nazareth Hospital", x: 640, y: 1180, distance: "10km", zone: "Hospital", features: ["Hospital"], layer: 3, color: "#3b82f6"},
+            {name: "Kidfarmaco", x: 580, y: 1280, distance: "11km", zone: "Market", features: ["Market"], layer: 3, color: "#8b5cf6"},
+            {name: "Chunga Mali", x: 520, y: 1240, distance: "12km", zone: "Market", features: ["Market"], layer: 3, color: "#8b5cf6"},
+            {name: "Gichini", x: 460, y: 1220, distance: "13km", zone: "Market", features: ["Market"], layer: 3, color: "#8b5cf6"},
+            {name: "Mai-ini", x: 400, y: 1180, distance: "14km", zone: "Market", features: ["Market"], layer: 3, color: "#8b5cf6"},
+            {name: "Rukuma", x: 340, y: 1160, distance: "14.5km", zone: "Market", features: ["Market"], layer: 3, color: "#8b5cf6"},
+            
+            // Detailed inner areas
+            {name: "Whispers", x: 1320, y: 1120, distance: "2.8km", zone: "Residential", features: ["Services"], layer: 3, color: "#ef4444"},
+            {name: "Mimosa", x: 1280, y: 1100, distance: "2.5km", zone: "Residential", features: ["Shops"], layer: 3, color: "#ef4444"},
+            {name: "Old Runda", x: 1340, y: 1140, distance: "3km", zone: "Residential", features: ["Shops"], layer: 3, color: "#ef4444"},
+            {name: "New Runda", x: 1360, y: 1160, distance: "3.5km", zone: "Residential", features: ["Shops"], layer: 3, color: "#ef4444"},
+            {name: "Runda Mhasibu", x: 1380, y: 1120, distance: "4km", zone: "Residential", features: ["Services"], layer: 3, color: "#ef4444"},
+            {name: "Magnolia Close", x: 1240, y: 1160, distance: "2km", zone: "Residential", features: ["Shops"], layer: 3, color: "#ef4444"},
+            {name: "Peponi Road", x: 1220, y: 1140, distance: "1.8km", zone: "Residential", features: ["School"], layer: 3, color: "#ef4444"},
+            
+            // Detailed Westlands
+            {name: "Sarit Centre", x: 1420, y: 1340, distance: "6.5km", zone: "Shopping", features: ["Mall", "Banks"], layer: 3, color: "#3b82f6"},
+            {name: "Westgate Mall", x: 1440, y: 1360, distance: "7km", zone: "Shopping", features: ["Mall", "Services"], layer: 3, color: "#3b82f6"},
+            {name: "General Mathenge", x: 1400, y: 1320, distance: "6km", zone: "Commercial", features: ["Restaurants"], layer: 3, color: "#3b82f6"},
+            {name: "Peponi Gardens", x: 1380, y: 1300, distance: "5.5km", zone: "Commercial", features: ["Shops"], layer: 3, color: "#3b82f6"},
+            
+            // Detailed Githurai
+            {name: "Githurai Kimbo", x: 1520, y: 1120, distance: "8.8km", zone: "Market", features: ["Market"], layer: 3, color: "#3b82f6"},
+            {name: "Progressive", x: 1540, y: 1140, distance: "9.2km", zone: "Market", features: ["Market"], layer: 3, color: "#3b82f6"},
+            {name: "Mwihoko", x: 1560, y: 1160, distance: "9.5km", zone: "Market", features: ["Market", "Jua Kali"], layer: 3, color: "#3b82f6"},
+            
+            // Additional Eastern
+            {name: "Survey", x: 1600, y: 1240, distance: "11km", zone: "Market", features: ["Market"], layer: 3, color: "#8b5cf6"},
+            {name: "Kariobangi", x: 1620, y: 1320, distance: "12km", zone: "Industrial", features: ["Industries", "Garages"], layer: 3, color: "#8b5cf6"},
+            {name: "Dandora", x: 1640, y: 1380, distance: "13km", zone: "Commercial", features: ["Market"], layer: 3, color: "#8b5cf6"},
+            {name: "Lucky Summer", x: 1580, y: 1420, distance: "12km", zone: "Residential", features: ["Market"], layer: 3, color: "#8b5cf6"},
+            {name: "Baba Dogo", x: 1600, y: 1460, distance: "13km", zone: "Industrial", features: ["Jua Kali", "Garages"], layer: 3, color: "#8b5cf6"},
+            
+            // Additional Southern
+            {name: "Hurlingham", x: 1160, y: 1560, distance: "9.5km", zone: "Commercial", features: ["Shopping"], layer: 3, color: "#3b82f6"},
+            {name: "Nairobi West", x: 1120, y: 1600, distance: "10km", zone: "Residential", features: ["Shopping"], layer: 3, color: "#3b82f6"},
+            {name: "South C", x: 1240, y: 1620, distance: "11km", zone: "Residential", features: ["Shopping"], layer: 3, color: "#8b5cf6"},
+            {name: "South B", x: 1320, y: 1640, distance: "11km", zone: "Residential", features: ["Shopping"], layer: 3, color: "#8b5cf6"},
+            {name: "Madaraka", x: 1180, y: 1640, distance: "10.5km", zone: "Residential", features: ["Market"], layer: 3, color: "#3b82f6"},
+            {name: "Nyayo Estate", x: 1280, y: 1680, distance: "11km", zone: "Residential", features: ["Shops"], layer: 3, color: "#8b5cf6"},
+            
+            // Ngong Road
+            {name: "Ngong Road", x: 1080, y: 1680, distance: "12km", zone: "Commercial", features: ["Market", "Transport"], layer: 3, color: "#8b5cf6"},
+            {name: "Prestige Plaza", x: 1140, y: 1480, distance: "8.5km", zone: "Shopping", features: ["Mall"], layer: 3, color: "#3b82f6"},
+            {name: "Junction Mall", x: 1040, y: 1720, distance: "13km", zone: "Shopping", features: ["Mall", "Banks"], layer: 3, color: "#8b5cf6"},
+            {name: "Adams Arcade", x: 1100, y: 1640, distance: "11km", zone: "Commercial", features: ["Shopping"], layer: 3, color: "#8b5cf6"},
+            {name: "T-Mall", x: 1200, y: 1600, distance: "10km", zone: "Shopping", features: ["Mall"], layer: 3, color: "#3b82f6"}
+        ];
         
-        function updateZoom() {
-            // Update zoom display
-            document.getElementById('zoom-value').textContent = Math.round(currentZoom * 100) + '%';
+        let currentZoom = 1;
+        let selectedTown = null;
+        const svg = document.getElementById('map-svg');
+        const popup = document.getElementById('popup');
+        let viewBox = {x: 0, y: 0, w: 2400, h: 2400};
+        
+        // Initialize map with towns
+        function initMap() {
+            townData.forEach((town, index) => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('id', `town-${index}`);
+                g.style.cursor = 'pointer';
+                
+                // Create circle
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', town.x);
+                circle.setAttribute('cy', town.y);
+                circle.setAttribute('r', town.layer === 1 ? 8 : town.layer === 2 ? 6 : 4);
+                circle.setAttribute('fill', town.color);
+                circle.setAttribute('stroke', 'white');
+                circle.setAttribute('stroke-width', '2');
+                circle.classList.add('town-dot');
+                
+                // Create label
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', town.x);
+                text.setAttribute('y', town.y - 15);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#1f2937');
+                text.setAttribute('font-size', town.layer === 1 ? '14' : town.layer === 2 ? '12' : '10');
+                text.setAttribute('font-weight', '600');
+                text.textContent = town.name;
+                
+                // Create distance label
+                const distText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                distText.setAttribute('x', town.x);
+                distText.setAttribute('y', town.y - 28);
+                distText.setAttribute('text-anchor', 'middle');
+                distText.setAttribute('fill', '#6b7280');
+                distText.setAttribute('font-size', '10');
+                distText.setAttribute('font-style', 'italic');
+                distText.textContent = town.distance;
+                
+                g.appendChild(circle);
+                g.appendChild(text);
+                g.appendChild(distText);
+                
+                // Add click event
+                g.addEventListener('click', (e) => {
+                    showPopup(town, e);
+                    selectTown(g, circle);
+                });
+                
+                // Add to appropriate layer
+                const layerGroup = document.getElementById(`towns-${town.layer === 1 ? 'major' : town.layer === 2 ? 'medium' : 'minor'}`);
+                layerGroup.appendChild(g);
+            });
             
-            // Update viewBox for zoom
-            const centerX = 1000;
-            const centerY = 1000;
-            const newWidth = 2000 / currentZoom;
-            const newHeight = 2000 / currentZoom;
+            updateVisibility();
+        }
+        
+        function selectTown(element, circle) {
+            // Remove previous selection
+            if (selectedTown) {
+                selectedTown.classList.remove('selected');
+            }
             
-            viewBox.w = newWidth;
-            viewBox.h = newHeight;
-            viewBox.x = centerX - newWidth / 2;
-            viewBox.y = centerY - newHeight / 2;
+            // Add selection to new town
+            circle.classList.add('selected');
+            selectedTown = circle;
+        }
+        
+        function showPopup(town, event) {
+            document.getElementById('popup-title').textContent = town.name;
+            document.getElementById('popup-distance').textContent = town.distance;
+            document.getElementById('popup-zone').textContent = town.zone;
             
-            svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
+            // Add features
+            const featuresDiv = document.getElementById('popup-features');
+            featuresDiv.innerHTML = '';
+            town.features.forEach(feature => {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.textContent = feature;
+                featuresDiv.appendChild(tag);
+            });
             
-            // Update visibility based on zoom level
+            // Position popup
+            popup.style.display = 'block';
+            popup.style.left = event.pageX + 10 + 'px';
+            popup.style.top = event.pageY - popup.offsetHeight - 10 + 'px';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 5000);
+        }
+        
+        function updateVisibility() {
+            const major = document.getElementById('towns-major');
+            const medium = document.getElementById('towns-medium');
+            const minor = document.getElementById('towns-minor');
+            
             if (currentZoom >= 2.5) {
                 svg.classList.add('zoom-high');
                 svg.classList.add('zoom-medium');
@@ -658,6 +650,23 @@
                 svg.classList.remove('zoom-medium');
                 svg.classList.remove('zoom-high');
             }
+        }
+        
+        function updateZoom() {
+            document.getElementById('zoom-value').textContent = Math.round(currentZoom * 100) + '%';
+            
+            const centerX = 1200;
+            const centerY = 1200;
+            const newWidth = 2400 / currentZoom;
+            const newHeight = 2400 / currentZoom;
+            
+            viewBox.w = newWidth;
+            viewBox.h = newHeight;
+            viewBox.x = centerX - newWidth / 2;
+            viewBox.y = centerY - newHeight / 2;
+            
+            svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
+            updateVisibility();
         }
         
         function zoomIn() {
@@ -676,13 +685,38 @@
         
         function resetZoom() {
             currentZoom = 1;
-            viewBox = {x: 0, y: 0, w: 2000, h: 2000};
-            svg.setAttribute('viewBox', '0 0 2000 2000');
+            viewBox = {x: 0, y: 0, w: 2400, h: 2400};
+            svg.setAttribute('viewBox', '0 0 2400 2400');
             updateZoom();
         }
         
+        // Search functionality
+        function searchTown() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            townData.forEach((town, index) => {
+                const element = document.getElementById(`town-${index}`);
+                if (element) {
+                    if (town.name.toLowerCase().includes(searchTerm)) {
+                        element.style.display = 'block';
+                        if (searchTerm.length > 2) {
+                            // Highlight searched town
+                            const circle = element.querySelector('circle');
+                            circle.style.filter = 'drop-shadow(0 0 20px yellow)';
+                        }
+                    } else if (searchTerm.length > 0) {
+                        element.style.display = 'none';
+                    } else {
+                        element.style.display = 'block';
+                        const circle = element.querySelector('circle');
+                        circle.style.filter = '';
+                    }
+                }
+            });
+        }
+        
         // Mouse wheel zoom
-        mapWrapper.addEventListener('wheel', (e) => {
+        document.getElementById('map-wrapper').addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.deltaY < 0) {
                 zoomIn();
@@ -692,10 +726,15 @@
         });
         
         // Pan functionality
+        let isPanning = false;
+        let startPoint = {x: 0, y: 0};
+        
         svg.addEventListener('mousedown', (e) => {
-            isPanning = true;
-            startPoint = {x: e.clientX, y: e.clientY};
-            svg.style.cursor = 'grabbing';
+            if (e.target === svg || e.target.tagName === 'rect') {
+                isPanning = true;
+                startPoint = {x: e.clientX, y: e.clientY};
+                svg.style.cursor = 'grabbing';
+            }
         });
         
         svg.addEventListener('mousemove', (e) => {
@@ -717,37 +756,19 @@
             svg.style.cursor = 'grab';
         });
         
-        svg.addEventListener('mouseleave', () => {
-            isPanning = false;
-            svg.style.cursor = 'grab';
-        });
-        
-        // Tooltip functionality
-        const towns = svg.querySelectorAll('circle[r]');
-        towns.forEach(town => {
-            if (town.getAttribute('r') > 3) {  // Only for town circles
-                town.addEventListener('mouseenter', (e) => {
-                    const nextText = town.nextElementSibling;
-                    if (nextText && nextText.tagName === 'text') {
-                        const townName = nextText.textContent;
-                        const distanceText = nextText.nextElementSibling;
-                        const distance = distanceText ? distanceText.textContent : '';
-                        
-                        tooltip.style.display = 'block';
-                        tooltip.textContent = `${townName} - ${distance}`;
-                        tooltip.style.left = e.pageX + 10 + 'px';
-                        tooltip.style.top = e.pageY - 25 + 'px';
-                    }
-                });
-                
-                town.addEventListener('mouseleave', () => {
-                    tooltip.style.display = 'none';
-                });
+        // Hide popup when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.town-dot') && !e.target.closest('.popup')) {
+                popup.style.display = 'none';
+                if (selectedTown) {
+                    selectedTown.classList.remove('selected');
+                    selectedTown = null;
+                }
             }
         });
         
-        // Initialize
-        updateZoom();
+        // Initialize the map
+        initMap();
     </script>
 </body>
 </html>
